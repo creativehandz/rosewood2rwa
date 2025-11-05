@@ -19,7 +19,12 @@ class ResidentController extends Controller
             $query->latest('payment_date')->limit(1);
         }]);
 
-        // Apply filters
+        // By default, only show active residents unless specifically requested
+        if (!$request->has('include_inactive')) {
+            $query->where('status', 'active');
+        }
+
+        // Apply additional filters
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
@@ -58,23 +63,77 @@ class ResidentController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'flat_number' => 'required|string|unique:residents,flat_number',
-            'owner_name' => 'required|string|max:255',
-            'contact_number' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'address' => 'nullable|string',
-            'monthly_maintenance' => 'required|numeric|min:0',
-            'status' => 'nullable|in:active,inactive'
-        ]);
+        try {
+            $validated = $request->validate([
+                'house_number' => [
+                    'required', 
+                    'string', 
+                    'max:10',
+                    Rule::unique('residents')->where(function ($query) use ($request) {
+                        return $query->where('house_number', $request->house_number)
+                                   ->where('floor', $request->floor);
+                    })
+                ],
+                'property_type' => 'required|in:house,3bhk_flat,villa,2bhk_flat,1bhk_flat,estonia_1,estonia_2,plot',
+                'floor' => 'nullable|in:ground_floor,1st_floor,2nd_floor',
+                'owner_name' => 'required|string|max:255|min:2',
+                'contact_number' => 'required|string|max:20|regex:/^[0-9\-\+\s\(\)]+$/',
+                'email' => 'nullable|email|max:255|unique:residents,email',
+                'monthly_maintenance' => 'required|numeric|min:0|max:999999',
+                'status' => 'nullable|in:active,inactive',
+                'current_state' => 'required|in:vacant,occupied',
+                'move_in_date' => 'nullable|date',
+                'emergency_contact' => 'nullable|string|max:255',
+                'emergency_phone' => 'nullable|string|max:20|regex:/^[0-9\-\+\s\(\)]+$/',
+                'remarks' => 'nullable|array'
+            ], [
+                'house_number.required' => 'House number is required',
+                'house_number.unique' => 'This house number and floor combination is already registered',
+                'property_type.required' => 'Property type is required',
+                'property_type.in' => 'Please select a valid property type',
+                'floor.in' => 'Please select a valid floor option',
+                'owner_name.required' => 'Owner name is required',
+                'owner_name.min' => 'Owner name must be at least 2 characters',
+                'contact_number.required' => 'Contact number is required',
+                'contact_number.regex' => 'Please enter a valid contact number',
+                'email.email' => 'Please enter a valid email address',
+                'email.unique' => 'This email is already registered',
+                'monthly_maintenance.required' => 'Monthly maintenance amount is required',
+                'monthly_maintenance.min' => 'Monthly maintenance must be a positive amount',
+                'current_state.required' => 'Current state is required',
+                'current_state.in' => 'Current state must be either vacant or occupied',
+                'move_in_date.date' => 'Please enter a valid date for move-in date',
+                'emergency_contact.max' => 'Emergency contact name cannot exceed 255 characters',
+                'emergency_phone.regex' => 'Please enter a valid emergency phone number'
+            ]);
 
-        $resident = Resident::create($validated);
+            // Set default values if not provided
+            $validated['status'] = $validated['status'] ?? 'active';
+            
+            // For backward compatibility, also save as flat_number
+            $validated['flat_number'] = $validated['house_number'];
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Resident created successfully',
-            'data' => $resident
-        ], 201);
+            $resident = Resident::create($validated);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Resident created successfully',
+                'data' => $resident
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create resident',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -97,23 +156,76 @@ class ResidentController extends Controller
      */
     public function update(Request $request, Resident $resident): JsonResponse
     {
-        $validated = $request->validate([
-            'flat_number' => ['required', 'string', Rule::unique('residents')->ignore($resident->id)],
-            'owner_name' => 'required|string|max:255',
-            'contact_number' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'address' => 'nullable|string',
-            'monthly_maintenance' => 'required|numeric|min:0',
-            'status' => 'nullable|in:active,inactive'
-        ]);
+        try {
+            $validated = $request->validate([
+                'house_number' => [
+                    'required', 
+                    'string', 
+                    'max:10',
+                    Rule::unique('residents')
+                        ->ignore($resident->id)
+                        ->where(function ($query) use ($request) {
+                            return $query->where('house_number', $request->house_number)
+                                       ->where('floor', $request->floor);
+                        })
+                ],
+                'property_type' => 'required|in:house,3bhk_flat,villa,2bhk_flat,1bhk_flat,estonia_1,estonia_2,plot',
+                'floor' => 'nullable|in:ground_floor,1st_floor,2nd_floor',
+                'owner_name' => 'required|string|max:255|min:2',
+                'contact_number' => 'required|string|max:20|regex:/^[0-9\-\+\s\(\)]+$/',
+                'email' => ['nullable', 'email', 'max:255', Rule::unique('residents')->ignore($resident->id)],
+                'monthly_maintenance' => 'required|numeric|min:0|max:999999',
+                'status' => 'nullable|in:active,inactive',
+                'current_state' => 'required|in:vacant,occupied',
+                'move_in_date' => 'nullable|date',
+                'emergency_contact' => 'nullable|string|max:255',
+                'emergency_phone' => 'nullable|string|max:20|regex:/^[0-9\-\+\s\(\)]+$/',
+                'remarks' => 'nullable|array'
+            ], [
+                'house_number.required' => 'House number is required',
+                'house_number.unique' => 'This house number and floor combination is already registered',
+                'property_type.required' => 'Property type is required',
+                'property_type.in' => 'Please select a valid property type',
+                'floor.in' => 'Please select a valid floor option',
+                'owner_name.required' => 'Owner name is required',
+                'owner_name.min' => 'Owner name must be at least 2 characters',
+                'contact_number.required' => 'Contact number is required',
+                'contact_number.regex' => 'Please enter a valid contact number',
+                'email.email' => 'Please enter a valid email address',
+                'email.unique' => 'This email is already registered',
+                'monthly_maintenance.required' => 'Monthly maintenance amount is required',
+                'monthly_maintenance.min' => 'Monthly maintenance must be a positive amount',
+                'current_state.required' => 'Current state is required',
+                'current_state.in' => 'Current state must be either vacant or occupied',
+                'move_in_date.date' => 'Please enter a valid date for move-in date',
+                'emergency_contact.max' => 'Emergency contact name cannot exceed 255 characters',
+                'emergency_phone.regex' => 'Please enter a valid emergency phone number'
+            ]);
 
-        $resident->update($validated);
+            // For backward compatibility, also update flat_number
+            $validated['flat_number'] = $validated['house_number'];
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Resident updated successfully',
-            'data' => $resident
-        ]);
+            $resident->update($validated);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Resident updated successfully',
+                'data' => $resident->fresh()
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update resident',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -121,12 +233,30 @@ class ResidentController extends Controller
      */
     public function destroy(Resident $resident): JsonResponse
     {
-        $resident->delete();
+        try {
+            // Check if resident has any payments for informational purposes
+            $hasPayments = $resident->payments()->exists();
+            $paymentCount = $resident->payments()->count();
+            
+            // Hard delete the resident (payments will be cascade deleted due to foreign key constraint)
+            $resident->delete();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Resident deleted successfully'
-        ]);
+            $message = $hasPayments 
+                ? "Resident and {$paymentCount} associated payment record(s) deleted successfully"
+                : 'Resident deleted successfully';
+
+            return response()->json([
+                'status' => 'success',
+                'message' => $message
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to delete resident',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

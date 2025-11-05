@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Total Residents - RWA Management System</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        /* Custom styles to complement Bootstrap */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #667eea;
+            --primary-hover: #5a67d8;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #f8f9fa; 
+        }
+        
+        .header { 
+            background: var(--primary-gradient); 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            z-index: 1030; 
+            padding: 15px 0;
+        }
+        
+        .layout { 
+            margin-top: 70px; 
+            min-height: calc(100vh - 70px); 
+        }
+        
+        .sidebar { 
+            background: white; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1); 
+            position: fixed; 
+            height: calc(100vh - 70px); 
+            overflow-y: auto; 
+            width: 280px;
+        }
+        
+        .main-content { 
+            margin-left: 280px; 
+            padding: 30px; 
+        }
+        
+        .menu-item { 
+            padding: 12px 20px; 
+            cursor: pointer; 
+            border-bottom: 1px solid #f1f3f4; 
+            transition: all 0.3s; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .menu-item:hover { 
+            background: #f8f9fa; 
+            border-left: 4px solid var(--primary-color); 
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .menu-item.active { 
+            background: #e3f2fd; 
+            border-left: 4px solid var(--primary-color); 
+            color: var(--primary-color); 
+            font-weight: 600; 
+        }
+        
+        .stat-card { 
+            background: var(--primary-gradient); 
+            color: white; 
+            text-align: center; 
+        }
+        
+        .btn-primary { 
+            background: var(--primary-color); 
+            border-color: var(--primary-color); 
+        }
+        
+        .btn-primary:hover { 
+            background: var(--primary-hover); 
+            border-color: var(--primary-hover); 
+        }
+        
+        .status-badge { 
+            font-size: 12px; 
+            font-weight: 500; 
+        }
+        
+        .spinner { 
+            border: 3px solid #f3f3f3; 
+            border-top: 3px solid var(--primary-color); 
+            border-radius: 50%; 
+            width: 30px; 
+            height: 30px; 
+            animation: spin 1s linear infinite; 
+            display: inline-block; 
+            margin-right: 10px; 
+        }
+        
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        
+        .export-btn { 
+            background: #17a2b8; 
+            border-color: #17a2b8; 
+        }
+        
+        .export-btn:hover { 
+            background: #138496; 
+            border-color: #138496; 
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+            
+            .header-content {
+                padding: 0 15px;
+            }
+        }
+        
+        /* Message Display Styles */
+        #messageArea {
+            position: relative;
+            z-index: 1000;
+        }
+        
+        #messageContent {
+            border-left: 4px solid;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        #messageText {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            word-break: break-word;
+            white-space: pre-wrap;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+        
+        /* Different border colors for different message types */
+        .alert-success { border-left-color: #28a745 !important; }
+        .alert-danger { border-left-color: #dc3545 !important; }
+        .alert-warning { border-left-color: #ffc107 !important; }
+        .alert-info { border-left-color: #17a2b8 !important; }
+        
+        /* Enhanced close button styles for custom icon */
+        .alert .btn-link {
+            transition: all 0.2s ease;
+            border: none !important;
+            background: none !important;
+            box-shadow: none !important;
+            z-index: 10;
+        }
+        
+        .alert .btn-link:focus {
+            outline: 2px solid rgba(255, 255, 255, 0.8);
+            outline-offset: 2px;
+        }
+        
+        /* Color the close icon based on alert type */
+        .alert-danger .btn-link { color: #721c24 !important; }
+        .alert-warning .btn-link { color: #856404 !important; }
+        .alert-success .btn-link { color: #155724 !important; }
+        .alert-info .btn-link { color: #0c5460 !important; }
+        
+        /* Alert animation for error messages */
+        @keyframes alertPulse {
+            0% { transform: scale(1); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+            50% { transform: scale(1.02); box-shadow: 0 4px 16px rgba(220, 53, 69, 0.3); }
+            100% { transform: scale(1); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        }
+        
+        /* Make error details more readable */
+        #messageText br {
+            margin: 2px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header text-white">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center header-content">
+                <h1 class="h4 mb-0 fw-semibold">🏠 RWA Management System</h1>
+                <div class="d-flex align-items-center gap-3 user-info">
+                    <span class="user-name" id="userName">Admin User</span>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layout d-flex">
+        <div class="sidebar pt-3">
+            <div class="menu-item" onclick="navigateToDashboard()" id="menu-dashboard">
+                <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+            </div>
+            <div class="menu-item active" onclick="navigateToResidents()" id="menu-residents">
+                <i class="bi bi-people-fill"></i> <span>Total Residents</span>
+            </div>
+            <div class="menu-item" onclick="navigateToPayments()" id="menu-payments">
+                <i class="bi bi-credit-card"></i> <span>Payment Management</span>
+            </div>
+            <div class="menu-item" onclick="navigateToReports()" id="menu-reports">
+                <i class="bi bi-graph-up"></i> <span>Reports</span>
+            </div>
+            <div class="menu-item" onclick="navigateToSettings()" id="menu-settings">
+                <i class="bi bi-gear"></i> <span>Settings</span>
+            </div>
+        </div>
+        <div class="main-content flex-grow-1">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h1 class="h3 text-dark fw-semibold mb-2">Total Residents Management</h1>
+                    <p class="text-muted mb-0">Manage all residents, properties, and their details in your RWA community</p>
+                </div>
+            </div>
+
+        <!-- Statistics Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h2 class="h5 mb-0 fw-semibold text-dark">Residents Overview</h2>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="card stat-card text-center p-3">
+                            <div class="card-body">
+                                <div class="display-6 fw-bold mb-1" id="totalResidents">0</div>
+                                <div class="small opacity-75">Total Residents</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card text-center p-3">
+                            <div class="card-body">
+                                <div class="display-6 fw-bold mb-1" id="activeResidents">0</div>
+                                <div class="small opacity-75">Active Residents</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card text-center p-3">
+                            <div class="card-body">
+                                <div class="display-6 fw-bold mb-1" id="vacantProperties">0</div>
+                                <div class="small opacity-75">Vacant Properties</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stat-card text-center p-3">
+                            <div class="card-body">
+                                <div class="display-6 fw-bold mb-1" id="totalCollection">₹0</div>
+                                <div class="small opacity-75">Monthly Collection</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Residents Management Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h2 class="h5 mb-0 fw-semibold text-dark">Residents Database</h2>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button class="btn btn-success" onclick="openAddModal()">
+                        <i class="bi bi-plus-lg"></i> Add New Resident
+                    </button>
+                    <button class="btn btn-primary" onclick="loadAllResidents()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh List
+                    </button>
+                    <button class="btn btn-info export-btn text-white" onclick="exportToCSV()">
+                        <i class="bi bi-download"></i> Export to CSV
+                    </button>
+                    <button class="btn btn-warning text-white" onclick="pushAllResidentsToSheet()" id="pushToSheetBtn">
+                        <i class="bi bi-cloud-upload"></i> Push All to Google Sheets
+                    </button>
+                    <button class="btn btn-secondary" onclick="syncFromGoogleSheets()" id="syncFromSheetBtn">
+                        <i class="bi bi-cloud-download"></i> Sync from Google Sheets
+                    </button>
+                </div>
+
+                <!-- Message Display Area -->
+                <div id="messageArea" class="d-none mb-3">
+                    <div id="messageContent" class="alert alert-dismissible fade show" role="alert">
+                        <div id="messageText"></div>
+                        <button type="button" class="btn btn-link p-1 position-absolute top-0 end-0 m-2" 
+                                style="color: inherit; font-size: 1.5rem; line-height: 1; text-decoration: none; opacity: 0.8;" 
+                                onclick="hideMessage()" 
+                                title="Click to close this message"
+                                onmouseover="this.style.opacity='1'; this.style.transform='scale(1.1)'"
+                                onmouseout="this.style.opacity='0.8'; this.style.transform='scale(1)'">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search by house number, name, contact, or email..." onkeyup="searchResidents()">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="statusFilter" onchange="filterResidents()">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="propertyTypeFilter" onchange="filterResidents()">
+                            <option value="">All Property Types</option>
+                            <option value="house">House</option>
+                            <option value="3bhk_flat">3 BHK Flat</option>
+                            <option value="villa">Villa</option>
+                            <option value="2bhk_flat">2 BHK Flat</option>
+                            <option value="1bhk_flat">1 BHK Flat</option>
+                            <option value="estonia_1">Estonia 1</option>
+                            <option value="estonia_2">Estonia 2</option>
+                            <option value="plot">Plot</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <select class="form-select" id="stateFilter" onchange="filterResidents()">
+                            <option value="">All States</option>
+                            <option value="vacant">Vacant</option>
+                            <option value="occupied">Occupied</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="residentsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">House No.</th>
+                                <th scope="col">Property Type</th>
+                                <th scope="col">Floor</th>
+                                <th scope="col">Owner Name</th>
+                                <th scope="col">Contact</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Monthly Maintenance</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Current State</th>
+                                <th scope="col">Remarks</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="residentsTableBody">
+                            <tr>
+                                <td colspan="10" class="loading">
+                                    <div class="spinner"></div>
+                                    Loading residents data...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Modal -->
+    <div class="modal fade" id="residentModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Add New Resident</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="modalAlert"></div>
+                    <form id="residentForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="houseNumber" class="form-label">House Number *</label>
+                                <input type="text" class="form-control" id="houseNumber" name="house_number" required placeholder="e.g., A-101, B-205">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="propertyType" class="form-label">Property Type *</label>
+                                <select class="form-select" id="propertyType" name="property_type" required onchange="toggleFloorField()">
+                                    <option value="">Select Property Type</option>
+                                    <option value="house">House</option>
+                                    <option value="3bhk_flat">3 BHK Flat</option>
+                                    <option value="villa">Villa</option>
+                                    <option value="2bhk_flat">2 BHK Flat</option>
+                                    <option value="1bhk_flat">1 BHK Flat</option>
+                                    <option value="estonia_1">Estonia 1</option>
+                                    <option value="estonia_2">Estonia 2</option>
+                                    <option value="plot">Plot</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="floorGroup" style="display: none;">
+                                <label for="floor" class="form-label">Floor *</label>
+                                <select class="form-select" id="floor" name="floor">
+                                    <option value="">Select Floor</option>
+                                    <option value="ground_floor">Ground Floor</option>
+                                    <option value="1st_floor">1st Floor</option>
+                                    <option value="2nd_floor">2nd Floor</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="ownerName" class="form-label">Owner Name *</label>
+                                <input type="text" class="form-control" id="ownerName" name="owner_name" required placeholder="Full name of the owner">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="contactNumber" class="form-label">Contact Number *</label>
+                                <input type="text" class="form-control" id="contactNumber" name="contact_number" required placeholder="10-digit mobile number">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="owner@example.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="monthlyMaintenance" class="form-label">Monthly Maintenance *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" class="form-control" id="monthlyMaintenance" name="monthly_maintenance" required step="0.01" min="0" placeholder="Amount">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="currentState" class="form-label">Current State *</label>
+                                <select class="form-select" id="currentState" name="current_state" required>
+                                    <option value="">Select Current State</option>
+                                    <option value="vacant">Vacant</option>
+                                    <option value="occupied">Occupied</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="moveInDate" class="form-label">Move-in Date</label>
+                                <input type="date" class="form-control" id="moveInDate" name="move_in_date" placeholder="Select move-in date">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="emergencyContact" class="form-label">Emergency Contact</label>
+                                <input type="text" class="form-control" id="emergencyContact" name="emergency_contact" placeholder="Emergency contact name">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="emergencyPhone" class="form-label">Emergency Phone</label>
+                                <input type="tel" class="form-control" id="emergencyPhone" name="emergency_phone" placeholder="Emergency contact number">
+                            </div>
+                            
+                            <!-- Remarks Section -->
+                            <div class="col-12">
+                                <hr class="my-4">
+                                <h6 class="mb-3">📝 Remarks</h6>
+                                
+                                <!-- Add New Remark -->
+                                <div class="mb-3">
+                                    <label for="newRemark" class="form-label">Add New Remark</label>
+                                    <textarea class="form-control" id="newRemark" rows="3" placeholder="Enter your remark here... (will be saved when you click Update Resident)"></textarea>
+                                    <small class="form-text text-muted">Type your remark above. It will be automatically added when you save the resident.</small>
+                                </div>
+                                
+                                <!-- Existing Remarks -->
+                                <div id="remarksSection" class="mb-3" style="display: none;">
+                                    <label class="form-label">Existing Remarks</label>
+                                    <div id="remarksContainer">
+                                        <div class="text-muted small" id="noRemarksText">No remarks added yet.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="saveResident()">
+                        <i class="bi bi-check-lg"></i> <span id="saveButtonText">Save Resident</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Resident Modal -->
+    <div class="modal fade" id="viewResidentModal" tabindex="-1" aria-labelledby="viewModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewModalTitle">
+                        <i class="bi bi-person-circle me-2"></i>Resident Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-4">
+                        <!-- Basic Information -->
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-house me-2"></i>Property Information
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <strong>House Number:</strong>
+                                    <div id="viewHouseNumber" class="text-muted">-</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Property Type:</strong>
+                                    <div id="viewPropertyType" class="text-muted">-</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Floor:</strong>
+                                    <div id="viewFloor" class="text-muted">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Personal Information -->
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-person me-2"></i>Personal Information
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <strong>Owner Name:</strong>
+                                    <div id="viewOwnerName" class="text-muted">-</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Contact Number:</strong>
+                                    <div id="viewContactNumber" class="text-muted">-</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Email:</strong>
+                                    <div id="viewEmail" class="text-muted">-</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Emergency Contact:</strong>
+                                    <div id="viewEmergencyContact" class="text-muted">-</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Emergency Phone:</strong>
+                                    <div id="viewEmergencyPhone" class="text-muted">-</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Move-in Date:</strong>
+                                    <div id="viewMoveInDate" class="text-muted">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Status & Maintenance -->
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-gear me-2"></i>Status & Maintenance
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <strong>Status:</strong>
+                                    <div id="viewStatus" class="text-muted">-</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Current State:</strong>
+                                    <div id="viewCurrentState" class="text-muted">-</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Monthly Maintenance:</strong>
+                                    <div id="viewMonthlyMaintenance" class="text-muted">-</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-geo-alt me-2"></i>Address
+                            </h6>
+                            <div id="viewAddress" class="text-muted">-</div>
+                        </div>
+
+                        <!-- Remarks -->
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-chat-left-text me-2"></i>Remarks
+                                <span id="viewRemarksCount" class="badge bg-secondary ms-2">0</span>
+                            </h6>
+                            <div id="viewRemarksContainer">
+                                <div class="text-muted">No remarks available</div>
+                            </div>
+                        </div>
+
+                        <!-- Created/Updated Info -->
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-clock-history me-2"></i>Record Information
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <strong>Created:</strong>
+                                    <div id="viewCreatedAt" class="text-muted">-</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Last Updated:</strong>
+                                    <div id="viewUpdatedAt" class="text-muted">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Close
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="editResidentFromView()">
+                        <i class="bi bi-pencil me-1"></i>Edit Resident
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000/api/v1';
+        let authToken = localStorage.getItem('rwa_token');
+        let currentUser = JSON.parse(localStorage.getItem('rwa_user') || '{}');
+        let allResidents = [];
+        let currentEditingId = null;
+
+        // Check authentication
+        if (!authToken) {
+            window.location.href = '/login.html';
+        }
+
+        // Initialize page
+        document.getElementById('userName').textContent = currentUser.name || 'Admin User';
+        loadResidentsStats();
+        loadAllResidents();
+
+        function toggleFloorField() {
+            const propertyType = document.getElementById('propertyType').value;
+            const floorGroup = document.getElementById('floorGroup');
+            const floorField = document.getElementById('floor');
+            
+            // Show floor field for flat types and Estonia properties
+            const needsFloor = ['3bhk_flat', '2bhk_flat', '1bhk_flat', 'estonia_1', 'estonia_2'].includes(propertyType);
+            
+            if (needsFloor) {
+                floorGroup.style.display = 'block';
+                floorField.required = true;
+            } else {
+                floorGroup.style.display = 'none';
+                floorField.required = false;
+                floorField.value = ''; // Clear the value when hidden
+            }
+        }
+
+        function navigateToDashboard() {
+            window.location.href = '/dashboard.html';
+        }
+
+        function navigateToResidents() {
+            // Already on residents page
+            window.location.reload();
+        }
+
+        function navigateToPayments() {
+            alert('🚧 Payment Management feature coming soon!');
+        }
+
+        function navigateToReports() {
+            alert('🚧 Reports & Analytics feature coming soon!');
+        }
+
+        function navigateToSettings() {
+            alert('🚧 Settings feature coming soon!');
+        }
+
+        async function logout() {
+            try {
+                await fetch(API_BASE + '/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+            } catch (error) {
+                console.log('Logout API call failed, but continuing with local logout');
+            }
+            localStorage.removeItem('rwa_token');
+            localStorage.removeItem('rwa_user');
+            window.location.href = '/login.html';
+        }
+
+        async function makeAuthenticatedRequest(endpoint, options = {}) {
+            const headers = {
+                'Authorization': 'Bearer ' + authToken,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                ...options.headers
+            };
+            const response = await fetch(API_BASE + endpoint, { ...options, headers });
+            if (response.status === 401) {
+                localStorage.removeItem('rwa_token');
+                localStorage.removeItem('rwa_user');
+                window.location.href = '/login.html';
+                return;
+            }
+            return response;
+        }
+
+        async function loadResidentsStats() {
+            try {
+                const response = await makeAuthenticatedRequest('/dashboard/stats');
+                if (response && response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        const stats = data.data;
+                        document.getElementById('totalResidents').textContent = stats.total_residents || 0;
+                        document.getElementById('activeResidents').textContent = stats.active_residents || 0;
+                        document.getElementById('vacantProperties').textContent = stats.vacant_properties || 0;
+                        document.getElementById('totalCollection').textContent = '₹' + (stats.current_month_collection || 0);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load residents stats:', error);
+            }
+        }
+
+        // Message Display Functions
+        function showMessage(text, type = 'info', autoHide = false) {
+            const messageArea = document.getElementById('messageArea');
+            const messageContent = document.getElementById('messageContent');
+            const messageText = document.getElementById('messageText');
+            
+            // CRITICAL: Clear ALL existing timers first
+            if (window.messageTimeout) {
+                clearTimeout(window.messageTimeout);
+                window.messageTimeout = null;
+            }
+            
+            // Also clear any other potential timers (belt and suspenders approach)
+            if (window.messageTimeoutBackup) {
+                clearTimeout(window.messageTimeoutBackup);
+                window.messageTimeoutBackup = null;
+            }
+            
+            // Set the message type (Bootstrap alert classes)
+            messageContent.className = `alert alert-${type} alert-dismissible fade show`;
+            
+            // Handle HTML content properly
+            if (text.includes('\n')) {
+                // Convert newlines to HTML breaks and preserve formatting
+                messageText.innerHTML = text.replace(/\n/g, '<br>').replace(/•/g, '&bull;');
+            } else {
+                messageText.innerHTML = text;
+            }
+            
+            // Show the message area
+            messageArea.classList.remove('d-none');
+            
+            // Auto-hide ONLY for success messages if requested (NEVER for errors/warnings)
+            if (autoHide && type === 'success') {
+                window.messageTimeout = setTimeout(() => {
+                    hideMessage();
+                }, 60000); // 1 minute (60 seconds)
+            }
+            
+            // For error messages, add a small animation to draw attention
+            if (type === 'danger') {
+                messageContent.style.animation = 'alertPulse 0.6s ease-in-out';
+                setTimeout(() => {
+                    messageContent.style.animation = '';
+                }, 600);
+            }
+        }
+
+        function hideMessage() {
+            const messageArea = document.getElementById('messageArea');
+            const messageContent = document.getElementById('messageContent');
+            
+            // Clear any existing auto-hide timer
+            if (window.messageTimeout) {
+                clearTimeout(window.messageTimeout);
+                window.messageTimeout = null;
+            }
+            
+            // Clear any animation
+            if (messageContent) {
+                messageContent.style.animation = '';
+            }
+            
+            // Hide the message area
+            messageArea.classList.add('d-none');
+        }
+
+        function showSuccessMessage(text, autoHide = true) {
+            showMessage(text, 'success', autoHide);
+        }
+
+        function showErrorMessage(text) {
+            // FORCE clear any existing timers before showing error
+            if (window.messageTimeout) {
+                clearTimeout(window.messageTimeout);
+                window.messageTimeout = null;
+            }
+            if (window.messageTimeoutBackup) {
+                clearTimeout(window.messageTimeoutBackup);
+                window.messageTimeoutBackup = null;
+            }
+            showMessage(text, 'danger', false);
+        }
+
+        function showWarningMessage(text) {
+            showMessage(text, 'warning', false);
+        }
+
+        function showInfoMessage(text) {
+            showMessage(text, 'info', false);
+        }
+
+        async function loadAllResidents() {
+            try {
+                showLoading('residentsTableBody');
+                // Include inactive residents and request all residents (no pagination)
+                const response = await makeAuthenticatedRequest('/residents?include_inactive=true&per_page=1000');
+                if (response && response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        allResidents = data.data.data || data.data;
+                        displayResidents(allResidents);
+                        updateStats(allResidents);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load residents:', error);
+                showError('residentsTableBody', 'Failed to load residents');
+            }
+        }
+
+        function updateStats(residents) {
+            if (!residents) return;
+            
+            const totalResidents = residents.length;
+            const activeResidents = residents.filter(r => r.status === 'active').length;
+            const vacantProperties = residents.filter(r => r.current_state === 'vacant').length;
+            const totalCollection = residents.reduce((sum, r) => sum + (parseFloat(r.monthly_maintenance) || 0), 0);
+
+            document.getElementById('totalResidents').textContent = totalResidents;
+            document.getElementById('activeResidents').textContent = activeResidents;
+            document.getElementById('vacantProperties').textContent = vacantProperties;
+            document.getElementById('totalCollection').textContent = '₹' + totalCollection.toLocaleString('en-IN');
+        }
+
+        function displayResidents(residents) {
+            const tbody = document.getElementById('residentsTableBody');
+            if (!residents || residents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #6c757d;">No residents found</td></tr>';
+                return;
+            }
+            
+            // Helper function to format property type for display
+            function formatPropertyType(type) {
+                const types = {
+                    'house': 'House',
+                    '3bhk_flat': '3 BHK Flat',
+                    'villa': 'Villa',
+                    '2bhk_flat': '2 BHK Flat',
+                    '1bhk_flat': '1 BHK Flat',
+                    'estonia_1': 'Estonia 1',
+                    'estonia_2': 'Estonia 2',
+                    'plot': 'Plot'
+                };
+                return types[type] || type;
+            }
+            
+            // Helper function to format floor for display
+            function formatFloor(floor) {
+                const floors = {
+                    'ground_floor': 'Ground Floor',
+                    '1st_floor': '1st Floor',
+                    '2nd_floor': '2nd Floor'
+                };
+                return floors[floor] || '-';
+            }
+            
+            // Helper function to format current state for display
+            function formatCurrentState(state) {
+                if (state === 'occupied' || state === 'filled') {
+                    return 'Occupied';
+                } else if (state === 'vacant') {
+                    return 'Vacant';
+                } else {
+                    return state ? state.charAt(0).toUpperCase() + state.slice(1) : 'Unknown';
+                }
+            }
+            
+            // Helper function to format remarks for display
+            function formatRemarks(remarks) {
+                if (!remarks || remarks.length === 0) {
+                    return '<span class="text-muted">No remarks</span>';
+                }
+                
+                const totalCount = remarks.length;
+                
+                return '<span class="badge bg-info">' + totalCount + ' remark' + (totalCount > 1 ? 's' : '') + '</span>';
+            }
+            
+            tbody.innerHTML = residents.map(resident => 
+                '<tr>' +
+                '<td><strong>' + (resident.house_number || resident.flat_number || '-') + '</strong></td>' +
+                '<td>' + formatPropertyType(resident.property_type || 'house') + '</td>' +
+                '<td>' + formatFloor(resident.floor) + '</td>' +
+                '<td>' + resident.owner_name + '</td>' +
+                '<td>' + (resident.contact_number || '-') + '</td>' +
+                '<td>' + (resident.email || '-') + '</td>' +
+                '<td>₹' + parseFloat(resident.monthly_maintenance || 0).toLocaleString('en-IN') + '</td>' +
+                '<td><span class="badge bg-' + (resident.status === 'active' ? 'success' : 'secondary') + '">' + resident.status.charAt(0).toUpperCase() + resident.status.slice(1) + '</span></td>' +
+                '<td><span class="badge bg-' + ((resident.current_state === 'filled' ? 'occupied' : resident.current_state || 'occupied') === 'occupied' ? 'primary' : 'warning') + '">' + formatCurrentState(resident.current_state || 'occupied') + '</span></td>' +
+                '<td>' + formatRemarks(resident.remarks || []) + '</td>' +
+                '<td>' +
+                '<div class="btn-group btn-group-sm" role="group">' +
+                '<button class="btn btn-outline-info" onclick="viewResident(' + resident.id + ')" title="View Details">' +
+                '<i class="bi bi-eye"></i>' +
+                '</button>' +
+                '<button class="btn btn-outline-warning" onclick="editResident(' + resident.id + ')" title="Edit Resident">' +
+                '<i class="bi bi-pencil"></i>' +
+                '</button>' +
+                '<button class="btn btn-outline-danger" onclick="deleteResident(' + resident.id + ', \'' + (resident.house_number || resident.flat_number || 'N/A') + '\')" title="Delete Resident">' +
+                '<i class="bi bi-trash"></i>' +
+                '</button>' +
+                '</div>' +
+                '</td>' +
+                '</tr>'
+            ).join('');
+        }
+
+        function showLoading(elementId) {
+            document.getElementById(elementId).innerHTML = '<tr><td colspan="10" class="loading"><div class="spinner"></div>Loading...</td></tr>';
+        }
+
+        function showError(elementId, message) {
+            document.getElementById(elementId).innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #dc3545;">' + message + '</td></tr>';
+        }
+
+        // Initialize Bootstrap modal
+        let residentModal;
+        document.addEventListener('DOMContentLoaded', function() {
+            residentModal = new bootstrap.Modal(document.getElementById('residentModal'));
+        });
+
+        function openAddModal() {
+            currentEditingId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Resident';
+            document.getElementById('saveButtonText').textContent = 'Save Resident';
+            document.getElementById('residentForm').reset();
+            
+            // Clear remarks
+            currentResidentRemarks = [];
+            document.getElementById('newRemark').value = '';
+            document.getElementById('remarksSection').style.display = 'none';
+            
+            // Hide floor field initially
+            document.getElementById('floorGroup').style.display = 'none';
+            document.getElementById('floor').required = false;
+            
+            // Clear remarks for new resident
+            clearRemarks();
+            
+            document.getElementById('modalAlert').innerHTML = '';
+            residentModal.show();
+        }
+
+        // Remarks Management Functions
+        let currentResidentRemarks = [];
+
+        function addNewRemark() {
+            const remarkText = document.getElementById('newRemark').value.trim();
+            
+            console.log('=== ADD REMARK DEBUG ===');
+            console.log('Remark text entered:', remarkText);
+            console.log('Current remarks before adding:', currentResidentRemarks);
+            
+            if (!remarkText) {
+                alert('Please enter a remark before adding.');
+                return;
+            }
+
+            const newRemark = {
+                text: remarkText,
+                added_by: 'Admin',
+                added_at: new Date().toISOString()
+            };
+
+            console.log('New remark object:', newRemark);
+            
+            currentResidentRemarks.unshift(newRemark); // Add to beginning (newest first)
+            
+            console.log('Current remarks after adding:', currentResidentRemarks);
+            
+            displayRemarks();
+            document.getElementById('newRemark').value = ''; // Clear input
+            
+            console.log('=== ADD REMARK DEBUG END ===');
+        }
+
+        function removeRemark(index) {
+            console.log('Marking remark for deletion at index:', index);
+            console.log('Current remarks before marking:', currentResidentRemarks);
+            
+            // Mark the remark for deletion instead of removing it immediately
+            if (currentResidentRemarks[index]) {
+                currentResidentRemarks[index].markedForDeletion = true;
+            }
+            
+            console.log('Current remarks after marking:', currentResidentRemarks);
+            
+            // Refresh the display to hide the marked remark
+            displayRemarks();
+        }
+
+        function displayRemarks() {
+            console.log('=== DISPLAY REMARKS DEBUG ===');
+            console.log('currentResidentRemarks:', currentResidentRemarks);
+            console.log('Length:', currentResidentRemarks ? currentResidentRemarks.length : 'null/undefined');
+            
+            const container = document.getElementById('remarksContainer');
+
+            if (!currentResidentRemarks || currentResidentRemarks.length === 0) {
+                console.log('No remarks found, hiding remarks section');
+                document.getElementById('remarksSection').style.display = 'none';
+                return;
+            }
+
+            console.log('Displaying', currentResidentRemarks.length, 'remarks');
+            document.getElementById('remarksSection').style.display = 'block';
+            
+            const remarksHtml = currentResidentRemarks
+                .filter(remark => !remark.markedForDeletion) // Hide remarks marked for deletion
+                .map((remark, originalIndex) => {
+                    // Find the original index in the full array for proper deletion
+                    const actualIndex = currentResidentRemarks.findIndex(r => r === remark);
+                    console.log('Processing remark', actualIndex, ':', remark);
+                    const date = new Date(remark.added_at);
+                    const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    return `
+                        <div class="card mb-2 border-start border-primary border-3">
+                            <div class="card-body py-2 px-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <p class="mb-1">${remark.text}</p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-person-fill"></i> ${remark.added_by} • 
+                                            <i class="bi bi-clock"></i> ${formattedDate}
+                                        </small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRemark(${actualIndex})" title="Delete this remark">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            container.innerHTML = remarksHtml;
+            console.log('Remarks HTML generated and inserted');
+            console.log('=== DISPLAY REMARKS DEBUG END ===');
+        }
+
+        function removeRemark(index) {
+            if (confirm('Are you sure you want to remove this remark?')) {
+                currentResidentRemarks.splice(index, 1);
+                displayRemarks();
+            }
+        }
+
+        function clearRemarks() {
+            console.log('=== CLEAR REMARKS DEBUG ===');
+            console.log('clearRemarks called - clearing all remarks');
+            console.log('Remarks before clearing:', currentResidentRemarks);
+            currentResidentRemarks = [];
+            displayRemarks();
+            console.log('=== CLEAR REMARKS DEBUG END ===');
+        }
+
+        // View Resident Function
+        async function viewResident(id) {
+            console.log('=== VIEW RESIDENT DEBUG ===');
+            console.log('1. Attempting to view resident with ID:', id);
+            console.log('2. API_BASE:', API_BASE);
+            console.log('3. Full URL will be:', API_BASE + '/public/residents/' + id);
+            
+            try {
+                // Use the new public individual resident endpoint
+                const url = API_BASE + '/public/residents/' + id;
+                console.log('4. Making fetch request to:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                console.log('5. Response received:');
+                console.log('   - Status:', response.status);
+                console.log('   - Status Text:', response.statusText);
+                console.log('   - OK:', response.ok);
+                console.log('   - Headers:', Object.fromEntries(response.headers.entries()));
+                
+                if (response && response.ok) {
+                    const data = await response.json();
+                    console.log('6. Response JSON data:', data);
+                    
+                    if (data.status === 'success') {
+                        const resident = data.data;
+                        console.log('7. Resident data extracted:', resident);
+                        
+                        populateViewModal(resident);
+                        
+                        // Store current viewing ID for edit functionality
+                        window.currentViewingId = id;
+                        
+                        // Show the modal
+                        console.log('8. Attempting to show modal...');
+                        const modal = new bootstrap.Modal(document.getElementById('viewResidentModal'));
+                        modal.show();
+                        console.log('9. Modal should be visible now');
+                    } else {
+                        console.error('10. API returned error status:', data);
+                        showMessage('Failed to load resident details: ' + (data.message || 'Unknown error'), 'danger');
+                    }
+                } else {
+                    console.error('11. Response not OK. Status:', response.status);
+                    const errorText = await response.text();
+                    console.error('12. Error response body:', errorText);
+                    throw new Error('Failed to fetch resident data - Status: ' + response.status + ', Body: ' + errorText);
+                }
+            } catch (error) {
+                console.error('=== VIEW RESIDENT ERROR ===');
+                console.error('Error details:', error);
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
+                showMessage('Error loading resident details. Check console for details. Error: ' + error.message, 'danger');
+            }
+            
+            console.log('=== VIEW RESIDENT DEBUG END ===');
+        }
+
+        // Populate View Modal with Resident Data
+        function populateViewModal(resident) {
+            console.log('=== POPULATE VIEW MODAL DEBUG ===');
+            console.log('Resident data received:', resident);
+            
+            try {
+                // Helper functions for formatting (local to this function)
+                function formatPropertyTypeLocal(type) {
+                    const types = {
+                        'house': 'House',
+                        '3bhk_flat': '3 BHK Flat',
+                        'villa': 'Villa',
+                        '2bhk_flat': '2 BHK Flat',
+                        '1bhk_flat': '1 BHK Flat',
+                        'estonia_1': 'Estonia 1',
+                        'estonia_2': 'Estonia 2',
+                        'penthouse': 'Penthouse'
+                    };
+                    return types[type] || type || '-';
+                }
+                
+                function formatFloorLocal(floor) {
+                    const floors = {
+                        'ground_floor': 'Ground Floor',
+                        '1st_floor': '1st Floor',
+                        '2nd_floor': '2nd Floor'
+                    };
+                    return floors[floor] || floor || '-';
+                }
+                
+                function formatCurrentStateLocal(state) {
+                    if (state === 'occupied' || state === 'filled') {
+                        return 'Occupied';
+                    } else if (state === 'vacant') {
+                        return 'Vacant';
+                    } else {
+                        return state ? state.charAt(0).toUpperCase() + state.slice(1) : 'Unknown';
+                    }
+                }
+                
+                // Property Information
+                console.log('Setting property information...');
+                document.getElementById('viewHouseNumber').textContent = resident.house_number || resident.flat_number || '-';
+                document.getElementById('viewPropertyType').textContent = formatPropertyTypeLocal(resident.property_type);
+                document.getElementById('viewFloor').textContent = formatFloorLocal(resident.floor);
+                
+                // Personal Information
+                console.log('Setting personal information...');
+                document.getElementById('viewOwnerName').textContent = resident.owner_name || '-';
+                document.getElementById('viewContactNumber').textContent = resident.contact_number || '-';
+                document.getElementById('viewEmail').textContent = resident.email || '-';
+                document.getElementById('viewEmergencyContact').textContent = resident.emergency_contact || '-';
+                document.getElementById('viewEmergencyPhone').textContent = resident.emergency_phone || '-';
+                document.getElementById('viewMoveInDate').textContent = resident.move_in_date ? 
+                    new Date(resident.move_in_date).toLocaleDateString() : '-';
+                
+                // Status & Maintenance
+                console.log('Setting status and maintenance...');
+                const statusElement = document.getElementById('viewStatus');
+                statusElement.innerHTML = '<span class="badge bg-' + 
+                    (resident.status === 'active' ? 'success' : 'secondary') + '">' + 
+                    (resident.status ? resident.status.charAt(0).toUpperCase() + resident.status.slice(1) : 'Unknown') + '</span>';
+                
+                const stateElement = document.getElementById('viewCurrentState');
+                const currentState = resident.current_state === 'filled' ? 'occupied' : resident.current_state || 'occupied';
+                stateElement.innerHTML = '<span class="badge bg-' + 
+                    (currentState === 'occupied' ? 'primary' : 'warning') + '">' + 
+                    formatCurrentStateLocal(resident.current_state) + '</span>';
+                
+                document.getElementById('viewMonthlyMaintenance').textContent = resident.monthly_maintenance ? 
+                    '₹' + parseFloat(resident.monthly_maintenance).toLocaleString('en-IN') : '-';
+                
+                // Address
+                console.log('Setting address...');
+                document.getElementById('viewAddress').textContent = resident.address || 'Not provided';
+                
+                // Remarks
+                console.log('Setting remarks...');
+                populateViewRemarks(resident.remarks || []);
+                
+                // Record Information
+                console.log('Setting record information...');
+                document.getElementById('viewCreatedAt').textContent = resident.created_at ? 
+                    new Date(resident.created_at).toLocaleString() : '-';
+                document.getElementById('viewUpdatedAt').textContent = resident.updated_at ? 
+                    new Date(resident.updated_at).toLocaleString() : '-';
+                
+                console.log('Modal population completed successfully');
+            } catch (error) {
+                console.error('Error in populateViewModal:', error);
+                throw error;
+            }
+            
+            console.log('=== POPULATE VIEW MODAL DEBUG END ===');
+        }
+
+        // Populate Remarks in View Modal
+        function populateViewRemarks(remarks) {
+            const container = document.getElementById('viewRemarksContainer');
+            const countBadge = document.getElementById('viewRemarksCount');
+            
+            countBadge.textContent = remarks.length;
+            
+            if (!remarks || remarks.length === 0) {
+                container.innerHTML = '<div class="text-muted">No remarks available</div>';
+                return;
+            }
+            
+            let html = '';
+            remarks.forEach((remark, index) => {
+                const remarkDate = remark.created_at ? new Date(remark.created_at) : new Date();
+                html += `
+                    <div class="card mb-2">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <p class="mb-1">${remark.content || remark.text || 'No content'}</p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>${remarkDate.toLocaleString()}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Edit from View Modal
+        function editResidentFromView() {
+            if (window.currentViewingId) {
+                // Close view modal
+                const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewResidentModal'));
+                if (viewModal) {
+                    viewModal.hide();
+                }
+                
+                // Open edit modal
+                setTimeout(() => {
+                    editResident(window.currentViewingId);
+                }, 300); // Small delay to ensure view modal is closed
+            }
+        }
+
+        async function editResident(id) {
+            try {
+                currentEditingId = id;
+                document.getElementById('modalTitle').textContent = 'Edit Resident';
+                document.getElementById('saveButtonText').textContent = 'Update Resident';
+                const response = await makeAuthenticatedRequest('/residents/' + id);
+                if (response && response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        const resident = data.data;
+                        document.getElementById('houseNumber').value = resident.house_number || resident.flat_number || '';
+                        document.getElementById('propertyType').value = resident.property_type || 'house';
+                        
+                        // Trigger floor field visibility
+                        toggleFloorField();
+                        
+                        document.getElementById('floor').value = resident.floor || '';
+                        document.getElementById('ownerName').value = resident.owner_name || '';
+                        document.getElementById('contactNumber').value = resident.contact_number || '';
+                        document.getElementById('email').value = resident.email || '';
+                        document.getElementById('monthlyMaintenance').value = resident.monthly_maintenance || '';
+                        document.getElementById('status').value = resident.status || 'active';
+                        // Handle both 'filled' (legacy) and 'occupied' (new) values
+                        const currentState = resident.current_state === 'filled' ? 'occupied' : (resident.current_state || 'occupied');
+                        document.getElementById('currentState').value = currentState;
+                        
+                        // Set new fields
+                        document.getElementById('moveInDate').value = resident.move_in_date || '';
+                        document.getElementById('emergencyContact').value = resident.emergency_contact || '';
+                        document.getElementById('emergencyPhone').value = resident.emergency_phone || '';
+                        
+                        // Load remarks
+                        console.log('=== EDIT RESIDENT REMARKS DEBUG ===');
+                        console.log('Raw resident data:', resident);
+                        console.log('Resident.remarks field:', resident.remarks);
+                        console.log('Type of remarks:', typeof resident.remarks);
+                        
+                        currentResidentRemarks = resident.remarks || [];
+                        
+                        // Clear any previous deletion marks from a previous edit session
+                        currentResidentRemarks.forEach(remark => {
+                            delete remark.markedForDeletion;
+                        });
+                        
+                        console.log('currentResidentRemarks after loading:', currentResidentRemarks);
+                        console.log('Length of currentResidentRemarks:', currentResidentRemarks.length);
+                        
+                        // Show existing remarks if any
+                        if (currentResidentRemarks && currentResidentRemarks.length > 0) {
+                            document.getElementById('remarksSection').style.display = 'block';
+                            displayRemarks();
+                        } else {
+                            document.getElementById('remarksSection').style.display = 'none';
+                        }
+                        
+                        console.log('=== EDIT RESIDENT REMARKS DEBUG END ===');
+                        
+                        document.getElementById('modalAlert').innerHTML = '';
+                        residentModal.show();
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load resident data:', error);
+                showModalAlert('Failed to load resident data', 'error');
+            }
+        }
+
+        async function deleteResident(id, flatNumber) {
+            // Validate inputs
+            if (!id) {
+                alert('❌ Invalid resident ID');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to PERMANENTLY DELETE resident from ' + flatNumber + '?\n\n⚠️ This will delete the resident and ALL associated payment records from the database.\nThis action cannot be undone.')) {
+                return;
+            }
+            
+            // Show loading state
+            const deleteButtons = document.querySelectorAll(`button[onclick*="deleteResident(${id}"]`);
+            deleteButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Deleting...';
+            });
+            
+            try {
+                console.log('Attempting to delete resident with ID:', id);
+                const response = await makeAuthenticatedRequest('/residents/' + id, { method: 'DELETE' });
+                console.log('Delete response status:', response?.status);
+                
+                if (response && response.ok) {
+                    const data = await response.json();
+                    console.log('Delete response data:', data);
+                    if (data.status === 'success') {
+                        // Remove from local array immediately for instant feedback
+                        const originalCount = allResidents.length;
+                        allResidents = allResidents.filter(resident => resident.id !== parseInt(id));
+                        
+                        if (allResidents.length < originalCount) {
+                            // Successfully removed from local array
+                            displayResidents(allResidents);
+                            updateStats(allResidents);
+                            console.log('Resident removed from local list immediately');
+                        }
+                        
+                        alert('✅ ' + data.message);
+                        
+                        // Refresh the data from server to ensure consistency
+                        await loadAllResidents();
+                        await loadResidentsStats();
+                    } else {
+                        alert('❌ ' + (data.message || 'Delete operation failed'));
+                    }
+                } else {
+                    // Handle non-200 responses
+                    let errorMessage = 'Failed to delete resident';
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.message || errorMessage;
+                        console.error('Delete failed with response:', errorData);
+                    } catch (e) {
+                        console.error('Could not parse error response:', e);
+                    }
+                    alert('❌ ' + errorMessage);
+                }
+            } catch (error) {
+                console.error('Network or other error during delete:', error);
+                alert('❌ Failed to delete resident. Error: ' + error.message);
+            } finally {
+                // Reset button state
+                deleteButtons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.innerHTML = '🗑️ Delete';
+                });
+            }
+        }
+
+        function closeModal() {
+            console.log('=== CLOSE MODAL DEBUG ===');
+            console.log('Closing modal - clearing remarks and form');
+            
+            residentModal.hide();
+            document.getElementById('residentForm').reset();
+            
+            // Clear remarks and textarea
+            currentResidentRemarks = [];
+            document.getElementById('newRemark').value = '';
+            document.getElementById('remarksSection').style.display = 'none';
+            
+            // Reset floor field visibility
+            document.getElementById('floorGroup').style.display = 'none';
+            document.getElementById('floor').required = false;
+            
+            currentEditingId = null;
+        }
+
+        function saveResident() {
+            // Trigger form submission
+            document.getElementById('residentForm').dispatchEvent(new Event('submit'));
+        }
+
+        document.getElementById('residentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const residentData = Object.fromEntries(formData);
+            residentData.monthly_maintenance = parseFloat(residentData.monthly_maintenance);
+            
+            // Handle new remark from textarea
+            const newRemarkText = document.getElementById('newRemark').value.trim();
+            if (newRemarkText) {
+                const newRemark = {
+                    text: newRemarkText,
+                    added_by: 'Admin',
+                    added_at: new Date().toISOString()
+                };
+                // Add the new remark to existing remarks
+                currentResidentRemarks = currentResidentRemarks || [];
+                currentResidentRemarks.unshift(newRemark); // Add to beginning (newest first)
+            }
+            
+            // Filter out remarks marked for deletion
+            const finalRemarks = currentResidentRemarks.filter(remark => !remark.markedForDeletion);
+            console.log('Final remarks after filtering deletions:', finalRemarks);
+            
+            // Add filtered remarks to the data
+            residentData.remarks = finalRemarks;
+            
+            console.log('=== FORM SUBMISSION DEBUG ===');
+            console.log('New remark text:', newRemarkText);
+            console.log('Current resident remarks after adding new remark:', currentResidentRemarks);
+            console.log('Resident data being sent:', residentData);
+            console.log('Remarks in data:', residentData.remarks);
+            
+            try {
+                const url = currentEditingId ? '/residents/' + currentEditingId : '/residents';
+                const method = currentEditingId ? 'PUT' : 'POST';
+                console.log('Submitting to:', url, 'with method:', method);
+                
+                const response = await makeAuthenticatedRequest(url, {
+                    method: method,
+                    body: JSON.stringify(residentData)
+                });
+                
+                console.log('Response received:', response);
+                
+                if (response && response.ok) {
+                    const data = await response.json();
+                    console.log('Response data:', data);
+                    
+                    if (data.status === 'success') {
+                        console.log('=== SUCCESS RESPONSE DEBUG ===');
+                        console.log('Form submitted successfully');
+                        console.log('Remarks in currentResidentRemarks:', currentResidentRemarks);
+                        console.log('Response data:', data);
+                        console.log('=== SUCCESS RESPONSE DEBUG END ===');
+                        
+                        showModalAlert('✅ ' + data.message, 'success');
+                        setTimeout(() => {
+                            closeModal();
+                            loadAllResidents();
+                        }, 1500);
+                    }
+                } else {
+                    const data = await response.json();
+                    if (data.errors) {
+                        const errorMessages = Object.values(data.errors).flat().join('<br>');
+                        showModalAlert('❌ ' + errorMessages, 'error');
+                    } else {
+                        showModalAlert('❌ ' + (data.message || 'Failed to save resident'), 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to save resident:', error);
+                showModalAlert('❌ Failed to save resident', 'error');
+            }
+        });
+
+        function showModalAlert(message, type) {
+            const alertDiv = document.getElementById('modalAlert');
+            alertDiv.innerHTML = '<div class="alert alert-' + type + '">' + message + '</div>';
+        }
+
+        function searchResidents() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const propertyTypeFilter = document.getElementById('propertyTypeFilter').value;
+            const stateFilter = document.getElementById('stateFilter').value;
+            
+            let filteredResidents = allResidents.filter(resident => {
+                const matchesSearch = !searchTerm || 
+                    (resident.house_number && resident.house_number.toLowerCase().includes(searchTerm)) ||
+                    (resident.flat_number && resident.flat_number.toLowerCase().includes(searchTerm)) ||
+                    resident.owner_name.toLowerCase().includes(searchTerm) ||
+                    (resident.contact_number && resident.contact_number.toLowerCase().includes(searchTerm)) ||
+                    (resident.email && resident.email.toLowerCase().includes(searchTerm)) ||
+                    (resident.property_type && resident.property_type.toLowerCase().includes(searchTerm));
+                
+                const matchesStatus = !statusFilter || resident.status === statusFilter;
+                const matchesPropertyType = !propertyTypeFilter || resident.property_type === propertyTypeFilter;
+                const matchesState = !stateFilter || resident.current_state === stateFilter;
+                
+                return matchesSearch && matchesStatus && matchesPropertyType && matchesState;
+            });
+            
+            displayResidents(filteredResidents);
+            updateStats(filteredResidents);
+        }
+
+        function filterResidents() {
+            searchResidents();
+        }
+
+        function exportToCSV() {
+            if (!allResidents || allResidents.length === 0) {
+                alert('❌ No data to export');
+                return;
+            }
+            
+            const headers = ['House Number', 'Property Type', 'Owner Name', 'Contact Number', 'Email', 'Monthly Maintenance', 'Status', 'Current State', 'Remarks Count'];
+            const csvContent = [
+                headers.join(','),
+                ...allResidents.map(resident => [
+                    resident.house_number || resident.flat_number || '',
+                    resident.property_type || '',
+                    resident.owner_name || '',
+                    resident.contact_number || '',
+                    resident.email || '',
+                    resident.monthly_maintenance || '0',
+                    resident.status || '',
+                    resident.current_state || '',
+                    (resident.remarks && resident.remarks.length) || '0'
+                ].map(field => '"' + field + '"').join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'residents_' + new Date().toISOString().split('T')[0] + '.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        async function pushAllResidentsToSheet() {
+            const button = document.getElementById('pushToSheetBtn');
+            const originalText = button.innerHTML;
+            
+            // Check if there are residents to push
+            if (!allResidents || allResidents.length === 0) {
+                showErrorMessage('❌ No residents found to push to Google Sheets. Please add some residents first.');
+                return;
+            }
+            
+            try {
+                // Show loading state
+                button.disabled = true;
+                button.innerHTML = '<i class="bi bi-hourglass-split"></i> Pushing to Google Sheets...';
+                
+                const response = await makeAuthenticatedRequest('/google-sheets/push-residents', {
+                    method: 'POST'
+                });
+                
+                if (response && response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        // Show success state
+                        button.innerHTML = '<i class="bi bi-check-lg"></i> Success!';
+                        button.className = 'btn btn-success text-white';
+                        
+                        // Show success message
+                        showSuccessMessage('✅ ' + data.message);
+                        
+                        // Reset button after delay
+                        setTimeout(() => {
+                            button.innerHTML = originalText;
+                            button.className = 'btn btn-warning text-white';
+                            button.disabled = false;
+                        }, 3000);
+                    } else {
+                        throw new Error(data.message || 'Failed to push residents to Google Sheets');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to push residents to Google Sheets');
+                }
+            } catch (error) {
+                console.error('Error pushing to Google Sheets:', error);
+                
+                // Show error state
+                button.innerHTML = '<i class="bi bi-x-lg"></i> Failed';
+                button.className = 'btn btn-danger text-white';
+                
+                // Show error message
+                showErrorMessage('❌ Error: ' + error.message);
+                
+                // Reset button after delay
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.className = 'btn btn-warning text-white';
+                    button.disabled = false;
+                }, 3000);
+            }
+        }
+
+        async function syncFromGoogleSheets() {
+            const button = document.getElementById('syncFromSheetBtn');
+            const originalText = button.innerHTML;
+            
+            // Confirm with user
+            if (!confirm('This will sync resident data from Google Sheets to the database.\n\n• Existing residents with the same house number will be updated\n• Residents not found in Google Sheets will be DELETED from the database\n• This action cannot be undone\n\nContinue?')) {
+                return;
+            }
+            
+            try {
+                // Show loading state
+                button.disabled = true;
+                button.innerHTML = '<i class="bi bi-hourglass-split"></i> Syncing from Google Sheets...';
+                
+                const response = await makeAuthenticatedRequest('/google-sheets/sync-from-sheets', {
+                    method: 'POST'
+                });
+                
+                if (response && response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        // Show success state
+                        button.innerHTML = '<i class="bi bi-check-lg"></i> Synced!';
+                        button.className = 'btn btn-success';
+                        
+                        // Show detailed success message
+                        let message = `✅ ${data.message}\n\n` +
+                                    `• Total synced: ${data.data.synced_count} residents`;
+                        
+                        if (data.data.created_count && data.data.updated_count) {
+                            message += `\n  - New residents created: ${data.data.created_count}`;
+                            message += `\n  - Existing residents updated: ${data.data.updated_count}`;
+                        } else if (data.data.created_count) {
+                            message += ` (${data.data.created_count} new)`;
+                        } else if (data.data.updated_count) {
+                            message += ` (${data.data.updated_count} updated)`;
+                        }
+                        
+                        message += `\n• Skipped: ${data.data.skipped_count} rows`;
+                        
+                        if (data.data.duplicate_count && data.data.duplicate_count > 0) {
+                            message += `\n• Duplicates found: ${data.data.duplicate_count} (same house number)`;
+                        }
+                        
+                        if (data.data.total_rows_processed) {
+                            message += `\n• Total rows in sheet: ${data.data.total_rows_processed}`;
+                        }
+                        
+                        if (data.data.current_db_count) {
+                            message += `\n• Current database count: ${data.data.current_db_count}`;
+                        }
+                        
+                        if (data.data.deleted_count && data.data.deleted_count > 0) {
+                            message += `\n• Deleted: ${data.data.deleted_count} residents (removed from sheet)`;
+                        }
+                        
+                        if (data.data.errors && data.data.errors.length > 0) {
+                            message += `\n• Errors: ${data.data.errors.length}\n\nError Details:\n${data.data.errors.join('\n')}`;
+                        }
+                        
+                        showSuccessMessage(message);
+                        
+                        // Refresh the residents list to show updated data
+                        loadAllResidents();
+                        
+                        // Reset button after delay
+                        setTimeout(() => {
+                            button.innerHTML = originalText;
+                            button.className = 'btn btn-secondary';
+                            button.disabled = false;
+                        }, 3000);
+                    } else {
+                        throw new Error(data.message || 'Failed to sync from Google Sheets');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    
+                    // Handle case where there are errors but some data was synced
+                    if (errorData.data && (errorData.data.synced_count > 0 || errorData.data.errors)) {
+                        let message = `⚠️ Sync completed with issues:\n\n` +
+                                    `• Synced: ${errorData.data.synced_count || 0} residents\n` +
+                                    `• Skipped: ${errorData.data.skipped_count || 0} rows`;
+                        
+                        if (errorData.data.deleted_count && errorData.data.deleted_count > 0) {
+                            message += `\n• Deleted: ${errorData.data.deleted_count} residents (removed from sheet)`;
+                        }
+                        
+                        if (errorData.data.errors && errorData.data.errors.length > 0) {
+                            message += `\n• Errors: ${errorData.data.errors.length}\n\nError Details:\n${errorData.data.errors.join('\n')}`;
+                        }
+                        
+                        showWarningMessage(message);
+                        
+                        // Refresh the list if some residents were synced
+                        if (errorData.data.synced_count > 0) {
+                            loadAllResidents();
+                        }
+                        
+                        // Reset button
+                        setTimeout(() => {
+                            button.innerHTML = originalText;
+                            button.className = 'btn btn-secondary';
+                            button.disabled = false;
+                        }, 3000);
+                        
+                        return;
+                    }
+                    
+                    throw new Error(errorData.message || 'Failed to sync from Google Sheets');
+                }
+            } catch (error) {
+                console.error('Error syncing from Google Sheets:', error);
+                
+                // Show error state
+                button.innerHTML = '<i class="bi bi-x-lg"></i> Failed';
+                button.className = 'btn btn-danger';
+                
+                // Show error message
+                showErrorMessage('❌ Error: ' + error.message);
+                
+                // Reset button after delay
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.className = 'btn btn-secondary';
+                    button.disabled = false;
+                }, 3000);
+            }
+        }
+
+        // Modal close on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('residentModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                openAddModal();
+            }
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
+        // Add backup event listener for Add Remark button
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, setting up remarks functionality...');
+            
+            // Backup event listener in case onclick doesn't work
+            const addRemarkBtn = document.getElementById('addRemarkBtn');
+            if (addRemarkBtn) {
+                addRemarkBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Add Remark button clicked via event listener');
+                    addNewRemark();
+                });
+            }
+            
+            // Test function to add a remark programmatically
+            window.testAddRemark = function() {
+                console.log('Test add remark function called');
+                currentResidentRemarks = currentResidentRemarks || [];
+                const testRemark = {
+                    text: "Test remark from console",
+                    added_by: "Test User",
+                    added_at: new Date().toISOString()
+                };
+                currentResidentRemarks.unshift(testRemark);
+                displayRemarks();
+                console.log('Test remark added. Current remarks:', currentResidentRemarks);
+            };
+        });
+    </script>
+    
+    <!-- Bootstrap 5.3 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

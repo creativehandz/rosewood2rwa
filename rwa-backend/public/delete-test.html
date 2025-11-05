@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Test</title>
+</head>
+<body>
+    <h1>Delete Test</h1>
+    <button onclick="testDelete()">Test Delete Function</button>
+    <div id="output"></div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000/api/v1';
+        const authToken = localStorage.getItem('rwa_token');
+
+        async function makeAuthenticatedRequest(endpoint, options = {}) {
+            const headers = {
+                'Authorization': 'Bearer ' + authToken,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                ...options.headers
+            };
+            const response = await fetch(API_BASE + endpoint, { ...options, headers });
+            return response;
+        }
+
+        async function testDelete() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>Testing delete functionality...</p>';
+
+            try {
+                // First, get all residents
+                console.log('Fetching residents...');
+                const response = await makeAuthenticatedRequest('/residents');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const residents = data.data.data || data.data;
+                    output.innerHTML += `<p>Found ${residents.length} residents</p>`;
+                    
+                    if (residents.length > 0) {
+                        const lastResident = residents[residents.length - 1];
+                        output.innerHTML += `<p>Attempting to delete resident: ${lastResident.owner_name} (ID: ${lastResident.id})</p>`;
+                        
+                        // Try to delete the last resident
+                        const deleteResponse = await makeAuthenticatedRequest('/residents/' + lastResident.id, { method: 'DELETE' });
+                        const deleteData = await deleteResponse.json();
+                        
+                        output.innerHTML += `<p>Delete response: ${JSON.stringify(deleteData)}</p>`;
+                        
+                        // Check if resident still exists
+                        const checkResponse = await makeAuthenticatedRequest('/residents');
+                        const checkData = await checkResponse.json();
+                        const remainingResidents = checkData.data.data || checkData.data;
+                        
+                        output.innerHTML += `<p>Residents after delete: ${remainingResidents.length}</p>`;
+                        
+                        const stillExists = remainingResidents.find(r => r.id === lastResident.id);
+                        if (stillExists) {
+                            output.innerHTML += `<p style="color: orange;">Resident still exists but may be marked as inactive. Status: ${stillExists.status}</p>`;
+                        } else {
+                            output.innerHTML += `<p style="color: green;">Resident successfully deleted!</p>`;
+                        }
+                    }
+                }
+            } catch (error) {
+                output.innerHTML += `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error('Test error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

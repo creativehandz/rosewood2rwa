@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('resident_id')->constrained()->onDelete('cascade');
             $table->decimal('amount', 10, 2);
-            $table->date('payment_date');
+            $table->date('payment_date')->nullable();
             $table->date('due_date');
             $table->string('payment_month'); // e.g., "2025-11" for November 2025
             $table->enum('status', ['paid', 'pending', 'overdue'])->default('pending');

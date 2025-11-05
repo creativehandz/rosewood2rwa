@@ -2,16 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
-// Add named login route for Laravel auth system
-Route::get('/login', function () {
-    return response()->json(['message' => 'Please use /api/v1/auth/login for API authentication'], 401);
-})->name('login');
-
-// Debug route for Google Sheets path
 Route::get('/debug-google-path', function () {
     $path = config('google.service_account_json_path');
     $exists = file_exists($path);
@@ -25,7 +15,6 @@ Route::get('/debug-google-path', function () {
         'base_directory' => $baseDir,
         'expected_path' => $expectedPath,
         'expected_path_exists' => $expectedExists,
-        'env_path' => env('GOOGLE_SERVICE_ACCOUNT_JSON_PATH'),
-        'files_in_base' => array_slice(scandir($baseDir), 0, 20), // First 20 files
+        'all_files_in_base' => scandir($baseDir),
     ]);
 });

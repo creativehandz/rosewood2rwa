@@ -1,290 +1,334 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RWA Dashboard - Management System</title>
+    <title>RWA Management Dashboard</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Custom styles to complement Bootstrap */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #667eea;
+            --primary-hover: #5a67d8;
         }
         
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            line-height: 1.6;
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #f8f9fa; 
         }
         
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        .header { 
+            background: var(--primary-gradient); 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            z-index: 1030; 
+            padding: 15px 0;
         }
         
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .layout { 
+            margin-top: 70px; 
+            min-height: calc(100vh - 70px); 
         }
         
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
+        .sidebar { 
+            background: white; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1); 
+            position: fixed; 
+            height: calc(100vh - 70px); 
+            overflow-y: auto; 
+            width: 280px;
         }
         
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .main-content { 
+            margin-left: 280px; 
+            padding: 30px; 
         }
         
-        .user-name {
-            font-weight: 500;
+        .menu-item { 
+            padding: 12px 20px; 
+            cursor: pointer; 
+            border-bottom: 1px solid #f1f3f4; 
+            transition: all 0.3s; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            text-decoration: none;
+            color: inherit;
         }
         
-        .logout-btn {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.3s;
+        .menu-item:hover { 
+            background: #f8f9fa; 
+            border-left: 4px solid var(--primary-color); 
+            color: inherit;
+            text-decoration: none;
         }
         
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
+        .menu-item.active { 
+            background: #e3f2fd; 
+            border-left: 4px solid var(--primary-color); 
+            color: var(--primary-color); 
+            font-weight: 600; 
         }
         
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
+        .stat-card { 
+            border-left: 4px solid var(--primary-color); 
+            transition: transform 0.2s;
         }
         
-        .dashboard-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-left: 4px solid #667eea;
-        }
-        
-        .stat-card h3 {
-            color: #2c3e50;
-            font-size: 14px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        
-        .stat-number {
-            font-size: 36px;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-        
-        .stat-label {
-            color: #7f8c8d;
-            font-size: 14px;
-        }
-        
-        .api-section {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        
-        .section-title {
-            font-size: 20px;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        
-        .btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        
-        .btn:hover {
-            background: #5a67d8;
+        .stat-card:hover {
             transform: translateY(-2px);
         }
         
-        .btn-secondary {
-            background: #6c757d;
+        .btn-primary { 
+            background: var(--primary-color); 
+            border-color: var(--primary-color); 
         }
         
-        .btn-secondary:hover {
-            background: #5a6268;
+        .btn-primary:hover { 
+            background: var(--primary-hover); 
+            border-color: var(--primary-hover); 
         }
         
-        .btn-success {
-            background: #28a745;
-        }
-        
-        .btn-success:hover {
-            background: #218838;
-        }
-        
-        .response-area {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            max-height: 400px;
-            overflow-y: auto;
-            display: none;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #6c757d;
-        }
-        
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .protected-badge {
-            background: #28a745;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <h1>🏢 RWA Management Dashboard</h1>
-            <div class="user-info">
-                <span class="protected-badge">🔒 Protected</span>
-                <span class="user-name" id="userName">Loading...</span>
-                <button class="logout-btn" onclick="logout()">Logout</button>
+    <div class="header text-white">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center header-content">
+                <h1 class="h4 mb-0 fw-semibold">🏠 RWA Management System</h1>
+                <div class="d-flex align-items-center gap-3 user-info">
+                    <span class="user-name" id="userName">Admin User</span>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-    
-    <div class="container">
-        <!-- Dashboard Statistics -->
-        <div class="dashboard-stats" id="dashboardStats">
-            <div class="stat-card">
-                <h3>Total Residents</h3>
-                <div class="stat-number" id="totalResidents">--</div>
-                <div class="stat-label">Registered residents</div>
+    <div class="layout d-flex">
+        <div class="sidebar pt-3">
+            <div class="menu-item active" onclick="showSection('dashboard')" id="menu-dashboard">
+                <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
             </div>
-            <div class="stat-card">
-                <h3>Paying Residents</h3>
-                <div class="stat-number" id="totalPayers">--</div>
-                <div class="stat-label">Current payers</div>
+            <div class="menu-item" onclick="navigateToResidents()" id="menu-residents">
+                <i class="bi bi-people-fill"></i> <span>Total Residents</span>
             </div>
-            <div class="stat-card">
-                <h3>Collection Rate</h3>
-                <div class="stat-number" id="collectionRate">--%</div>
-                <div class="stat-label">Payment efficiency</div>
+            <div class="menu-item" onclick="navigateToPayments()" id="menu-payments">
+                <i class="bi bi-credit-card"></i> <span>Payment Management</span>
             </div>
-            <div class="stat-card">
-                <h3>Monthly Collection</h3>
-                <div class="stat-number" id="monthlyCollection">₹--</div>
-                <div class="stat-label">Current month</div>
+            <div class="menu-item" onclick="navigateToReports()" id="menu-reports">
+                <i class="bi bi-graph-up"></i> <span>Reports</span>
+            </div>
+            <div class="menu-item" onclick="navigateToSettings()" id="menu-settings">
+                <i class="bi bi-gear"></i> <span>Settings</span>
             </div>
         </div>
-        
-        <!-- Resident Management -->
-        <div class="api-section">
-            <h2 class="section-title">👥 Resident Management</h2>
-            <div class="action-buttons">
-                <button class="btn" onclick="loadAllResidents()">Load All Residents</button>
-                <button class="btn btn-success" onclick="loadPayers()">Paying Residents</button>
-                <button class="btn btn-secondary" onclick="loadNonPayers()">Non-Paying Residents</button>
-            </div>
-            <div class="response-area" id="residentsResponse"></div>
-        </div>
-        
-        <!-- Payment Management -->
-        <div class="api-section">
-            <h2 class="section-title">💳 Payment Management</h2>
-            <div class="action-buttons">
-                <button class="btn" onclick="loadAllPayments()">Load All Payments</button>
-                <button class="btn btn-secondary" onclick="loadOverduePayments()">Overdue Payments</button>
-            </div>
-            <div class="response-area" id="paymentsResponse"></div>
-        </div>
-    </div>
+        <div class="main-content flex-grow-1">
+            <div id="section-dashboard" class="content-section">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h2 class="h5 mb-0 fw-semibold text-dark">Dashboard Overview</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="card stat-card text-center p-3">
+                                    <div class="card-body">
+                                        <div class="display-6 fw-bold text-primary mb-1" id="totalResidents">0</div>
+                                        <div class="text-muted small">Total Residents</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stat-card text-center p-3">
+                                    <div class="card-body">
+                                        <div class="display-6 fw-bold text-primary mb-1" id="totalPayers">0</div>
+                                        <div class="text-muted small">Paying Residents</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stat-card text-center p-3">
+                                    <div class="card-body">
+                                        <div class="display-6 fw-bold text-primary mb-1" id="collectionRate">0%</div>
+                                        <div class="text-muted small">Collection Rate</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stat-card text-center p-3">
+                                    <div class="card-body">
+                                        <div class="display-6 fw-bold text-primary mb-1" id="monthlyCollection">₹0</div>
+                                        <div class="text-muted small">This Month</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h3 class="h6 mb-0 fw-semibold text-dark">Quick Actions</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <button class="btn btn-primary w-100" onclick="navigateToResidents()">
+                                    <i class="bi bi-people-fill"></i> Manage Residents
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-success w-100" onclick="navigateToPayments()">
+                                    <i class="bi bi-credit-card"></i> Payment Management
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-info w-100" onclick="navigateToReports()">
+                                    <i class="bi bi-graph-up"></i> View Reports
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-warning w-100" onclick="pushToGoogleSheets()">
+                                    <i class="bi bi-cloud-upload"></i> Push to Sheets
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Google Sheets Integration -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h3 class="h6 mb-0 fw-semibold text-dark">Google Sheets Integration</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <button class="btn btn-outline-primary w-100" onclick="testGoogleSheetsConnection()">
+                                    <i class="bi bi-wifi"></i> Test Connection
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-outline-success w-100" onclick="pushToGoogleSheets()">
+                                    <i class="bi bi-upload"></i> Push All Residents
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-outline-info w-100" onclick="createNewSheet()">
+                                    <i class="bi bi-plus-square"></i> Create New Sheet
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div id="sheetsStatus" class="alert alert-info d-none" role="alert">
+                                <i class="bi bi-info-circle"></i> <span id="sheetsStatusText">Ready to sync with Google Sheets</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="section-payments" class="content-section d-none">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h2 class="h5 mb-0 fw-semibold text-dark">Payment Management</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted">Payment management features will be implemented here.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="section-reports" class="content-section d-none">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h2 class="h5 mb-0 fw-semibold text-dark">Reports & Analytics</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted">Reports and analytics will be implemented here.</p>
+                    </div>
+                </div>
+            </div>
+            <div id="section-settings" class="content-section d-none">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h2 class="h5 mb-0 fw-semibold text-dark">Settings</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted">Settings and configuration options will be implemented here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
         const API_BASE = 'http://127.0.0.1:8000/api/v1';
         let authToken = localStorage.getItem('rwa_token');
         let currentUser = JSON.parse(localStorage.getItem('rwa_user') || '{}');
-        
-        // Check authentication on page load
+
         if (!authToken) {
             window.location.href = '/login.html';
         }
-        
-        // Set user name
+
         document.getElementById('userName').textContent = currentUser.name || 'Admin User';
-        
-        // Load dashboard stats on page load
         loadDashboardStats();
-        
-        // Logout function
+
+        function navigateToResidents() {
+            window.location.href = '/residents.html';
+        }
+
+        function navigateToPayments() {
+            alert('🚧 Payment Management feature coming soon!');
+        }
+
+        function navigateToReports() {
+            alert('🚧 Reports & Analytics feature coming soon!');
+        }
+
+        function navigateToSettings() {
+            alert('🚧 Settings feature coming soon!');
+        }
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.add('d-none');
+            });
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.getElementById('section-' + sectionName).classList.remove('d-none');
+            document.getElementById('menu-' + sectionName).classList.add('active');
+        }
+
         async function logout() {
             try {
-                await fetch(`${API_BASE}/auth/logout`, {
+                await fetch(API_BASE + '/auth/logout', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${authToken}`,
+                        'Authorization': 'Bearer ' + authToken,
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     }
@@ -292,92 +336,152 @@
             } catch (error) {
                 console.log('Logout API call failed, but continuing with local logout');
             }
-            
             localStorage.removeItem('rwa_token');
             localStorage.removeItem('rwa_user');
             window.location.href = '/login.html';
         }
-        
-        // API call function with authentication
-        async function authenticatedFetch(endpoint, responseElementId) {
-            const responseElement = document.getElementById(responseElementId);
-            
-            try {
-                responseElement.style.display = 'block';
-                responseElement.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
-                
-                const response = await fetch(`${API_BASE}${endpoint}`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                if (response.status === 401) {
-                    // Token expired or invalid
-                    localStorage.removeItem('rwa_token');
-                    localStorage.removeItem('rwa_user');
-                    window.location.href = '/login.html';
-                    return;
-                }
-                
-                const data = await response.json();
-                responseElement.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-                
-                return data;
-            } catch (error) {
-                responseElement.innerHTML = `<div style="color: #dc3545;">Error: ${error.message}</div>`;
+
+        async function makeAuthenticatedRequest(endpoint, options = {}) {
+            const headers = {
+                'Authorization': 'Bearer ' + authToken,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                ...options.headers
+            };
+            const response = await fetch(API_BASE + endpoint, { ...options, headers });
+            if (response.status === 401) {
+                localStorage.removeItem('rwa_token');
+                localStorage.removeItem('rwa_user');
+                window.location.href = '/login.html';
+                return;
             }
+            return response;
         }
-        
-        // Dashboard stats function
+
         async function loadDashboardStats() {
             try {
-                const response = await fetch(`${API_BASE}/dashboard/stats`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
+                const response = await makeAuthenticatedRequest('/dashboard/stats');
+                if (response && response.ok) {
                     const data = await response.json();
                     if (data.status === 'success') {
                         const stats = data.data;
-                        document.getElementById('totalResidents').textContent = stats.total_residents;
-                        document.getElementById('totalPayers').textContent = stats.total_payers;
-                        document.getElementById('collectionRate').textContent = stats.collection_percentage + '%';
-                        document.getElementById('monthlyCollection').textContent = '₹' + stats.current_month_collection;
+                        document.getElementById('totalResidents').textContent = stats.total_residents || 0;
+                        document.getElementById('totalPayers').textContent = stats.total_payers || 0;
+                        document.getElementById('collectionRate').textContent = (stats.collection_percentage || 0) + '%';
+                        document.getElementById('monthlyCollection').textContent = '₹' + (stats.current_month_collection || 0);
                     }
                 }
             } catch (error) {
                 console.error('Failed to load dashboard stats:', error);
             }
         }
-        
-        // Resident management functions
-        function loadAllResidents() {
-            authenticatedFetch('/residents', 'residentsResponse');
+
+        // Google Sheets Integration Functions
+        function showSheetsStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('sheetsStatus');
+            const statusText = document.getElementById('sheetsStatusText');
+            
+            statusDiv.className = `alert alert-${type}`;
+            statusText.textContent = message;
+            statusDiv.classList.remove('d-none');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                statusDiv.classList.add('d-none');
+            }, 5000);
         }
-        
-        function loadPayers() {
-            authenticatedFetch('/residents/filter/payers', 'residentsResponse');
+
+        async function testGoogleSheetsConnection() {
+            showSheetsStatus('Testing Google Sheets connection...', 'info');
+            
+            try {
+                const response = await makeAuthenticatedRequest('/google-sheets/test-connection');
+                if (response && response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        showSheetsStatus('✅ Google Sheets connection successful!', 'success');
+                    } else {
+                        showSheetsStatus('❌ Connection failed: ' + (data.message || 'Unknown error'), 'danger');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    showSheetsStatus('❌ Connection failed: ' + (errorData.message || 'Server error'), 'danger');
+                }
+            } catch (error) {
+                console.error('Google Sheets connection test failed:', error);
+                showSheetsStatus('❌ Connection test failed: ' + error.message, 'danger');
+            }
         }
-        
-        function loadNonPayers() {
-            authenticatedFetch('/residents/filter/non-payers', 'residentsResponse');
+
+        async function pushToGoogleSheets() {
+            if (!confirm('Are you sure you want to push all resident data to Google Sheets?')) {
+                return;
+            }
+
+            showSheetsStatus('Pushing resident data to Google Sheets...', 'info');
+            
+            try {
+                const response = await makeAuthenticatedRequest('/google-sheets/push-residents', {
+                    method: 'POST'
+                });
+                
+                if (response && response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        showSheetsStatus(`✅ Successfully pushed ${data.data.total_residents} residents to Google Sheets!`, 'success');
+                    } else {
+                        showSheetsStatus('❌ Push failed: ' + (data.message || 'Unknown error'), 'danger');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    showSheetsStatus('❌ Push failed: ' + (errorData.message || 'Server error'), 'danger');
+                }
+            } catch (error) {
+                console.error('Google Sheets push failed:', error);
+                showSheetsStatus('❌ Push failed: ' + error.message, 'danger');
+            }
         }
-        
-        // Payment management functions
-        function loadAllPayments() {
-            authenticatedFetch('/payments', 'paymentsResponse');
-        }
-        
-        function loadOverduePayments() {
-            authenticatedFetch('/payments/filter/overdue', 'paymentsResponse');
+
+        async function createNewSheet() {
+            const sheetName = prompt('Enter a name for the new Google Sheet:', 'RWA Residents ' + new Date().toLocaleDateString());
+            if (!sheetName) {
+                return;
+            }
+
+            showSheetsStatus('Creating new Google Sheet...', 'info');
+            
+            try {
+                const response = await makeAuthenticatedRequest('/google-sheets/create-sheet', {
+                    method: 'POST',
+                    body: JSON.stringify({ name: sheetName })
+                });
+                
+                if (response && response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        showSheetsStatus(`✅ New sheet "${sheetName}" created successfully!`, 'success');
+                        if (data.data.spreadsheet_url) {
+                            setTimeout(() => {
+                                if (confirm('Would you like to open the new sheet in a new tab?')) {
+                                    window.open(data.data.spreadsheet_url, '_blank');
+                                }
+                            }, 1000);
+                        }
+                    } else {
+                        showSheetsStatus('❌ Sheet creation failed: ' + (data.message || 'Unknown error'), 'danger');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    showSheetsStatus('❌ Sheet creation failed: ' + (errorData.message || 'Server error'), 'danger');
+                }
+            } catch (error) {
+                console.error('Google Sheets creation failed:', error);
+                showSheetsStatus('❌ Sheet creation failed: ' + error.message, 'danger');
+            }
         }
     </script>
+    
+    <!-- Bootstrap 5.3 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
