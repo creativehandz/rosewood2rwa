@@ -649,4 +649,5 @@ class PaymentController extends Controller
 }
 / /   U p d a t e d   v i a   C I / C D   -   B a c k e n d   T e s t  
  / /   L a r a v e l   1 2   w i t h   P H P   8 . 2   -   1 2 / 0 1 / 2 0 2 5   0 1 : 1 4 : 1 1  
+ / /   D e p l o y m e n t   t e s t   w i t h   t i m e o u t   f i x e s   -   1 2 / 0 1 / 2 0 2 5   0 2 : 1 9 : 2 5  
  
