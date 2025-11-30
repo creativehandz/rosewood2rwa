@@ -140,10 +140,46 @@
             <button class="btn" onclick="fetchPayments()">Load All Payments</button>
             <div id="payments-response" class="response" style="display:none;"></div>
         </div>
+
+        <div class="api-section">
+            <div class="api-title">📈 Payment Summary</div>
+            <div class="endpoint">GET /api/v1/payments/summary</div>
+            <button class="btn" onclick="fetchPaymentSummary()">Load Payment Summary</button>
+            <div id="summary-response" class="response" style="display:none;"></div>
+        </div>
+
+        <div class="api-section">
+            <div class="api-title">📊 Payment Analytics</div>
+            <div class="endpoint">GET /api/v1/payments/analytics</div>
+            <button class="btn" onclick="fetchPaymentAnalytics()">Load Payment Analytics</button>
+            <div id="analytics-response" class="response" style="display:none;"></div>
+        </div>
+
+        <div class="api-section">
+            <div class="api-title">🚨 Defaulters List</div>
+            <div class="endpoint">GET /api/v1/payments/filter/defaulters</div>
+            <button class="btn" onclick="fetchDefaulters()">Load Defaulters</button>
+            <div id="defaulters-response" class="response" style="display:none;"></div>
+        </div>
+
+        <div class="api-section">
+            <div class="api-title">⏰ Overdue Payments</div>
+            <div class="endpoint">GET /api/v1/payments/filter/overdue</div>
+            <button class="btn" onclick="fetchOverdue()">Load Overdue Payments</button>
+            <div id="overdue-response" class="response" style="display:none;"></div>
+        </div>
+
+        <div class="api-section">
+            <div class="api-title">🔍 Payment Search</div>
+            <div class="endpoint">POST /api/v1/payments/search</div>
+            <input type="text" id="search-input" placeholder="Search by resident name or house number" style="padding: 8px; margin: 5px; width: 250px;">
+            <button class="btn" onclick="searchPayments()">Search Payments</button>
+            <div id="search-response" class="response" style="display:none;"></div>
+        </div>
     </div>
 
     <script>
-        const API_BASE = 'http://127.0.0.1:8000/api/v1';
+        const API_BASE = 'http://127.0.0.1:8000/api/v1/public';
 
         async function fetchData(endpoint, responseId, displayFunction = null) {
             try {
@@ -219,6 +255,43 @@
 
         function fetchPayments() {
             fetchData('/payments', 'payments-response');
+        }
+
+        function fetchPaymentSummary() {
+            fetchData('/payments/summary', 'summary-response');
+        }
+
+        function fetchPaymentAnalytics() {
+            fetchData('/payments/analytics', 'analytics-response');
+        }
+
+        function fetchDefaulters() {
+            fetchData('/payments/filter/defaulters', 'defaulters-response');
+        }
+
+        function fetchOverdue() {
+            fetchData('/payments/filter/overdue', 'overdue-response');
+        }
+
+        async function searchPayments() {
+            try {
+                const searchTerm = document.getElementById('search-input').value;
+                const response = await fetch(`${API_BASE}/payments/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ query: searchTerm })
+                });
+                const data = await response.json();
+                const responseDiv = document.getElementById('search-response');
+                responseDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                responseDiv.style.display = 'block';
+            } catch (error) {
+                document.getElementById('search-response').innerHTML = `<div class="status error">Error: ${error.message}</div>`;
+                document.getElementById('search-response').style.display = 'block';
+            }
         }
 
         // Load stats on page load

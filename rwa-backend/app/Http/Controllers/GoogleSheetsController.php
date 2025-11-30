@@ -25,14 +25,14 @@ class GoogleSheetsController extends Controller
             $result = $this->googleSheetsService->testConnection();
             
             return response()->json([
-                'status' => $result['success'] ? 'success' : 'error',
+                'success' => $result['success'],
                 'message' => $result['message'],
                 'data' => $result
             ], $result['success'] ? 200 : 400);
 
         } catch (Exception $e) {
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Failed to test connection: ' . $e->getMessage()
             ], 500);
         }
@@ -74,19 +74,19 @@ class GoogleSheetsController extends Controller
             $result = $this->googleSheetsService->pushAllResidents();
             
             return response()->json([
-                'status' => 'success',
+                'success' => true,
                 'message' => $result['message'],
                 'data' => $result
             ]);
 
         } catch (Exception $e) {
-            Log::error('Failed to push residents to Google Sheets', [
+            \Log::error('Failed to push residents to Google Sheets', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Failed to push residents: ' . $e->getMessage(),
                 'error' => $e->getMessage()
             ], 500);
@@ -133,7 +133,7 @@ class GoogleSheetsController extends Controller
             
             if ($result['success']) {
                 return response()->json([
-                    'status' => 'success',
+                    'success' => true,
                     'message' => $result['message'],
                     'data' => [
                         'synced_count' => $result['synced_count'],
@@ -143,7 +143,7 @@ class GoogleSheetsController extends Controller
                 ]);
             } else {
                 return response()->json([
-                    'status' => 'error',
+                    'success' => false,
                     'message' => $result['message'],
                     'data' => [
                         'synced_count' => $result['synced_count'],
@@ -155,7 +155,7 @@ class GoogleSheetsController extends Controller
 
         } catch (Exception $e) {
             return response()->json([
-                'status' => 'error',
+                'success' => false,
                 'message' => 'Failed to sync from Google Sheets: ' . $e->getMessage(),
                 'error' => $e->getMessage()
             ], 500);

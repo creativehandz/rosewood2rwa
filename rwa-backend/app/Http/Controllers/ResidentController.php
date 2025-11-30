@@ -314,14 +314,17 @@ class ResidentController extends Controller
         $totalResidents = Resident::count();
         $activeResidents = Resident::where('status', 'active')->count();
         $totalPayers = Resident::whereHas('payments', function ($query) {
-            $query->where('status', 'paid');
+            $query->where('status', 'Paid');
         })->count();
         $totalNonPayers = $totalResidents - $totalPayers;
         
         $currentMonth = now()->format('Y-m');
-        $currentMonthPayments = Payment::where('payment_month', $currentMonth)->where('status', 'paid')->sum('amount');
-        $pendingPayments = Payment::where('status', 'pending')->count();
-        $overduePayments = Payment::where('status', 'pending')->where('due_date', '<', now())->count();
+        $currentMonthPayments = Payment::where('payment_month', $currentMonth)->where('status', 'Paid')->sum('amount_paid');
+        $pendingPayments = Payment::where('status', 'Pending')->count();
+        // Calculate overdue payments as pending payments from previous months
+        $overduePayments = Payment::where('status', 'Pending')
+            ->where('payment_month', '<', $currentMonth)
+            ->count();
 
         return response()->json([
             'status' => 'success',

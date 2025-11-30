@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
         // Seed residents and payments data
         $this->call([
             ResidentSeeder::class,
+            MaintenanceChargeSeeder::class,
         ]);
     }
 }
