@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Row, Col, Form, Button, Modal, Spinner, Badge, Pagination } from 'react-bootstrap';
-import { FaEdit, FaTrash, FaEye, FaSearch } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaEye, FaSearch, FaReceipt, FaDownload } from 'react-icons/fa';
 import { paymentAPI } from '../../services/api';
+import { receiptAPI } from '../../services/receiptAPI';
 import { formatDate, formatCurrency, getStatusBadgeClass, getCurrentMonth, getMonthOptions, debounce, calculatePagination } from '../../utils/helpers';
 import PaymentForm from './PaymentForm';
 
@@ -125,6 +126,46 @@ const PaymentList = ({ onRefresh, onSuccess, onError }) => {
   const handleDelete = (payment) => {
     setSelectedPayment(payment);
     setShowDeleteModal(true);
+  };
+
+  // Receipt handling functions
+  const handleGenerateReceipt = async (payment) => {
+    try {
+      await receiptAPI.generateReceipt(payment.id);
+      onSuccess('Receipt generated successfully!');
+    } catch (err) {
+      onError('Failed to generate receipt: ' + err.message);
+    }
+  };
+
+  const handleViewReceipt = async (payment) => {
+    try {
+      const response = await receiptAPI.getReceiptByPayment(payment.id);
+      if (response.data) {
+        const viewUrl = receiptAPI.getReceiptViewUrl(response.data.id);
+        window.open(viewUrl, '_blank');
+      } else {
+        // If no receipt exists, generate one first
+        await handleGenerateReceipt(payment);
+      }
+    } catch (err) {
+      onError('Failed to view receipt: ' + err.message);
+    }
+  };
+
+  const handleDownloadReceipt = async (payment) => {
+    try {
+      const response = await receiptAPI.getReceiptByPayment(payment.id);
+      if (response.data) {
+        const downloadUrl = receiptAPI.getReceiptDownloadUrl(response.data.id);
+        window.open(downloadUrl, '_blank');
+      } else {
+        // If no receipt exists, generate one first
+        await handleGenerateReceipt(payment);
+      }
+    } catch (err) {
+      onError('Failed to download receipt: ' + err.message);
+    }
   };
 
   const confirmDelete = async () => {
@@ -356,6 +397,26 @@ const PaymentList = ({ onRefresh, onSuccess, onError }) => {
                             >
                               <FaTrash />
                             </Button>
+                            {payment.status === 'Paid' && (
+                              <>
+                                <Button
+                                  variant="outline-success"
+                                  size="sm"
+                                  onClick={() => handleViewReceipt(payment)}
+                                  title="View Receipt"
+                                >
+                                  <FaReceipt />
+                                </Button>
+                                <Button
+                                  variant="outline-secondary"
+                                  size="sm"
+                                  onClick={() => handleDownloadReceipt(payment)}
+                                  title="Download Receipt"
+                                >
+                                  <FaDownload />
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
