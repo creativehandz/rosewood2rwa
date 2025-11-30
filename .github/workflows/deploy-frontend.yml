@@ -1,0 +1,47 @@
+name: Deploy Frontend to Hostinger
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'rwa-frontend/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: rwa-frontend/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd rwa-frontend
+        npm ci
+        
+    - name: Build React app
+      run: |
+        cd rwa-frontend
+        npm run build
+      env:
+        REACT_APP_API_URL: https://rosewoodestate2rwa.creativehandz.in/api/v1/public
+        
+    - name: Deploy to Hostinger via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_HOST_ROSEWOODESTATE2 }}
+        username: ${{ secrets.FTP_USERNAME_ROSEWOODESTATE2 }}
+        password: ${{ secrets.FTP_PASSWORD_ROSEWOODESTATE2 }}
+        local-dir: ./rwa-frontend/build/
+        server-dir: /public_html/rosewoodestate2/
+        exclude: |
+          **/.git*
+          **/.git*/**

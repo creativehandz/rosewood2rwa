@@ -1,0 +1,57 @@
+name: Deploy Backend to Hostinger
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'rwa-backend/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, dom, filter, gd, iconv, json, mbstring, zip
+        
+    - name: Install Composer dependencies
+      run: |
+        cd rwa-backend
+        composer install --optimize-autoloader --no-dev --no-interaction
+        
+    - name: Create production .env
+      run: |
+        cd rwa-backend
+        cp .env.example .env
+        sed -i 's/APP_ENV=local/APP_ENV=production/' .env
+        sed -i 's/APP_DEBUG=true/APP_DEBUG=false/' .env
+        sed -i 's|APP_URL=http://localhost|APP_URL=https://rosewoodestate2rwa.creativehandz.in|' .env
+        
+    - name: Generate application key
+      run: |
+        cd rwa-backend
+        php artisan key:generate
+        
+    - name: Deploy to Hostinger via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_HOST_ROSEWOODESTATE2RWA }}
+        username: ${{ secrets.FTP_USERNAME_ROSEWOODESTATE2RWA }}
+        password: ${{ secrets.FTP_PASSWORD_ROSEWOODESTATE2RWA }}
+        local-dir: ./rwa-backend/
+        server-dir: /public_html/rosewoodestate2rwa/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          .env.example
+          README.md
+          .gitignore
+          tests/**
