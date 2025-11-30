@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentService
 {
+    protected $receiptService;
+
+    public function __construct(ReceiptService $receiptService)
+    {
+        $this->receiptService = $receiptService;
+    }
+
     /**
      * Create a new payment with validation and business logic
      */
@@ -52,12 +59,20 @@ class PaymentService
             $payment = Payment::create($data);
             $payment->load('resident');
 
+            // Auto-generate receipt if payment is paid
+            if ($payment->status === 'Paid') {
+                $receipt = $this->receiptService->generateReceiptForPayment($payment);
+                if ($receipt) {
+                    Log::info("Receipt {$receipt->receipt_number} auto-generated for payment {$payment->id}");
+                }
+            }
+
             DB::commit();
 
             return [
                 'success' => true,
                 'message' => 'Payment created successfully',
-                'data' => $payment
+                'data' => $payment->fresh(['resident', 'receipt'])
             ];
 
         } catch (\Exception $e) {
@@ -96,12 +111,20 @@ class PaymentService
                 $payment->save();
             }
 
+            // Auto-generate receipt if payment status changed to Paid
+            if ($originalStatus !== 'Paid' && $payment->fresh()->status === 'Paid') {
+                $receipt = $this->receiptService->generateReceiptForPayment($payment);
+                if ($receipt) {
+                    Log::info("Receipt {$receipt->receipt_number} auto-generated for updated payment {$payment->id}");
+                }
+            }
+
             DB::commit();
 
             return [
                 'success' => true,
                 'message' => 'Payment updated successfully',
-                'data' => $payment->fresh('resident')
+                'data' => $payment->fresh(['resident', 'receipt'])
             ];
 
         } catch (\Exception $e) {

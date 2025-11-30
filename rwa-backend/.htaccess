@@ -1,0 +1,38 @@
+RewriteEngine On
+
+# Handle Laravel public folder redirect
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ public/$1 [L,QSA]
+
+# If request is already for public folder, handle it
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} ^/public/
+RewriteRule ^public/(.*)$ public/index.php [L,QSA]
+
+# Security: Block access to sensitive files
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "composer.json">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "composer.lock">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Block access to vendor directory
+RedirectMatch 403 ^/vendor/.*$
+
+# Block access to storage directory from web
+RedirectMatch 403 ^/storage/.*$
+
+# Block access to bootstrap/cache
+RedirectMatch 403 ^/bootstrap/.*$

@@ -20,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
             '/api/v1/*',
         ]);
 
+        // Add CORS headers for subdomain access
+        $middleware->append(\App\Http\Middleware\Cors::class);
+
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
         ]);

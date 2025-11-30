@@ -42,6 +42,14 @@ class Payment extends Model
     }
 
     /**
+     * Get the receipt for this payment
+     */
+    public function receipt()
+    {
+        return $this->hasOne(Receipt::class);
+    }
+
+    /**
      * Calculate the balance due
      */
     public function getBalanceDueAttribute(): float

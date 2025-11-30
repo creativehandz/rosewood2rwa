@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\GoogleSheetsController;
 use App\Http\Controllers\Web\DashboardController;
 use Illuminate\Http\Request;
@@ -103,6 +104,16 @@ Route::prefix('v1/public')->group(function () {
     Route::post('payments', [PaymentController::class, 'store']);
     Route::put('payments/{payment}', [PaymentController::class, 'update']);
     Route::delete('payments/{payment}', [PaymentController::class, 'destroy']);
+    
+    // Receipt public routes
+    Route::prefix('receipts')->group(function () {
+        Route::get('/', [ReceiptController::class, 'index']);
+        Route::get('/payment/{payment}', [ReceiptController::class, 'getByPayment']);
+        Route::post('/generate/{payment}', [ReceiptController::class, 'generate']);
+        Route::get('/{receipt}/view', [ReceiptController::class, 'view']);
+        Route::get('/{receipt}/download', [ReceiptController::class, 'download']);
+        Route::post('/generate-missing', [ReceiptController::class, 'generateMissing']);
+    });
     
     // Google Sheets public test routes
     Route::prefix('google-sheets')->group(function () {
