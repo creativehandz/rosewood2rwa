@@ -24,7 +24,8 @@ jobs:
     - name: Install Composer dependencies
       run: |
         cd rwa-backend
-        composer install --optimize-autoloader --no-dev --no-interaction
+        rm -f composer.lock
+        composer install --optimize-autoloader --no-dev --no-interaction --ignore-platform-reqs
         
     - name: Create production .env
       run: |
@@ -47,6 +48,8 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD_ROSEWOODESTATE2RWA }}
         local-dir: ./rwa-backend/
         server-dir: /public_html/rosewoodestate2rwa/
+        timeout: 300000
+        log-level: verbose
         exclude: |
           **/.git*
           **/.git*/**
