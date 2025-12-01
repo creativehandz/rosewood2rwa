@@ -21,12 +21,6 @@ jobs:
         php-version: '8.2'
         extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, dom, filter, gd, iconv, json, mbstring, zip
         
-    - name: Install Composer dependencies
-      run: |
-        cd rwa-backend
-        rm -f composer.lock
-        composer install --optimize-autoloader --no-dev --no-interaction --ignore-platform-reqs
-        
     - name: Create production .env
       run: |
         cd rwa-backend
@@ -48,12 +42,12 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD_ROSEWOODESTATE2RWA }}
         local-dir: ./rwa-backend/
         server-dir: /public_html/rosewoodestate2rwa/
-        timeout: 300000
-        log-level: verbose
+        timeout: 60000
         exclude: |
           **/.git*
           **/.git*/**
           **/node_modules/**
+          **/vendor/**
           .env.example
           README.md
           .gitignore
